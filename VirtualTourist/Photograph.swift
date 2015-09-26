@@ -15,6 +15,7 @@ import CoreData
 class Photograph: NSManagedObject {
     @NSManaged var title: String
     @NSManaged var urlString: String
+    @NSManaged var flickrId: String
     @NSManaged var location: Pin?
 
     override init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {
@@ -30,6 +31,8 @@ class Photograph: NSManagedObject {
         // Dictionary
         title = dictionary["title"] as! String
         urlString = dictionary["urlString"] as! String
+        // doubles as the file location as well
+        flickrId = dictionary["flickrId"] as! String
     }
     
 }

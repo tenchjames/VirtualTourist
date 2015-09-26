@@ -15,6 +15,8 @@ class Pin: NSManagedObject {
     @NSManaged var id: String
     @NSManaged var latitude: Double
     @NSManaged var longitude: Double
+    @NSManaged var lastPhotoCount: NSNumber
+    @NSManaged var loadingNewPhotos: Bool
     @NSManaged var photographs: [Photograph]
     
     
@@ -33,7 +35,8 @@ class Pin: NSManagedObject {
         // set object properties with dictionary of values
         latitude = dictionary["latitude"] as! Double
         longitude = dictionary["longitude"] as! Double
+        lastPhotoCount = 0
+        loadingNewPhotos = false
     }
-    
     
 }

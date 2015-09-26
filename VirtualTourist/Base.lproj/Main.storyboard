@@ -43,7 +43,7 @@
         <!--Photo Album View Controller-->
         <scene sceneID="C4V-9B-O1j">
             <objects>
-                <viewController storyboardIdentifier="PhotoViewController" id="BCk-cC-qu8" customClass="PhotoAlbumViewController" customModule="VirtualTourist" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController storyboardIdentifier="PhotoViewController" automaticallyAdjustsScrollViewInsets="NO" id="BCk-cC-qu8" customClass="PhotoAlbumViewController" customModule="VirtualTourist" customModuleProvider="target" sceneMemberID="viewController">
                     <layoutGuides>
                         <viewControllerLayoutGuide type="top" id="10x-0p-zV6"/>
                         <viewControllerLayoutGuide type="bottom" id="2pS-lz-OXd"/>
@@ -54,6 +54,7 @@
                         <subviews>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="f0Z-ei-a9W">
                                 <rect key="frame" x="0.0" y="140" width="600" height="460"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="0.0" minimumInteritemSpacing="0.0" id="oCP-iJ-0Ia">
                                     <size key="itemSize" width="50" height="50"/>
                                     <size key="headerReferenceSize" width="0.0" height="0.0"/>
@@ -69,7 +70,7 @@
                                             <autoresizingMask key="autoresizingMask"/>
                                             <subviews>
                                                 <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="SWm-V1-WYh">
-                                                    <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                                                    <rect key="frame" x="1" y="1" width="48" height="48"/>
                                                 </imageView>
                                                 <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="D7X-Vb-wEy">
                                                     <rect key="frame" x="15" y="15" width="20" height="20"/>
@@ -78,14 +79,15 @@
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         </view>
                                         <constraints>
-                                            <constraint firstItem="SWm-V1-WYh" firstAttribute="leading" secondItem="rHy-mg-bxw" secondAttribute="leading" id="GG1-Dw-kPU"/>
+                                            <constraint firstItem="SWm-V1-WYh" firstAttribute="leading" secondItem="rHy-mg-bxw" secondAttribute="leading" constant="1" id="GG1-Dw-kPU"/>
                                             <constraint firstItem="D7X-Vb-wEy" firstAttribute="centerY" secondItem="rHy-mg-bxw" secondAttribute="centerY" id="Uq6-Ac-oWf"/>
-                                            <constraint firstAttribute="bottom" secondItem="SWm-V1-WYh" secondAttribute="bottom" id="cty-u0-XDK"/>
-                                            <constraint firstAttribute="trailing" secondItem="SWm-V1-WYh" secondAttribute="trailing" id="jr9-Yx-N5P"/>
+                                            <constraint firstAttribute="bottom" secondItem="SWm-V1-WYh" secondAttribute="bottom" constant="1" id="cty-u0-XDK"/>
+                                            <constraint firstAttribute="trailing" secondItem="SWm-V1-WYh" secondAttribute="trailing" constant="1" id="jr9-Yx-N5P"/>
                                             <constraint firstItem="D7X-Vb-wEy" firstAttribute="centerX" secondItem="rHy-mg-bxw" secondAttribute="centerX" id="sxs-AW-Q4c"/>
-                                            <constraint firstItem="SWm-V1-WYh" firstAttribute="top" secondItem="rHy-mg-bxw" secondAttribute="top" id="zng-qw-fQM"/>
+                                            <constraint firstItem="SWm-V1-WYh" firstAttribute="top" secondItem="rHy-mg-bxw" secondAttribute="top" constant="1" id="zng-qw-fQM"/>
                                         </constraints>
                                         <connections>
+                                            <outlet property="activityIndicator" destination="D7X-Vb-wEy" id="cHs-4h-POo"/>
                                             <outlet property="photoImage" destination="SWm-V1-WYh" id="epK-re-0oB"/>
                                         </connections>
                                     </collectionViewCell>

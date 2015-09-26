@@ -9,6 +9,7 @@ import MapKit
 import UIKit
 import CoreData
 
+
 class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDelegate,
     UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout  {
     
@@ -25,13 +26,26 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
     var sharedInstance: CoreDataStackManager {
         return CoreDataStackManager.sharedInstance()
     }
-    
     // flicker client
     let flickrClient = FlickrClient.sharedInstance()
     
     override func viewDidLoad() {
         super.viewDidLoad()
+
+        fetchedResultsController.delegate = self
+        // let coredata handle pin management
+        do {
+            try fetchedResultsController.performFetch()
+        } catch {}
         
+    }
+    
+    override func viewWillAppear(animated: Bool) {
+        super.viewWillAppear(animated)
+        getPhotos()
+    }
+    
+    override func viewDidAppear(animated: Bool) {
         let annotation = MKPointAnnotation()
         let coordinate = CLLocationCoordinate2DMake(pin.latitude, pin.longitude)
         annotation.coordinate = coordinate
@@ -40,64 +54,23 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         mapView.region = region
         mapView.centerCoordinate = coordinate
         mapView.addAnnotation(annotation)
-        
-        // let coredata handle pin management
-        do {
-            try fetchedResultsController.performFetch()
-        } catch {}
-        
-        fetchedResultsController.delegate = self
-        
-        getPhotos()
     }
-
 
 
     // TODO: ERROR CHECKING ETC, AND CHECKING CORE DATA FOR VALUES
     func getPhotos() {
-        let latitude = pin.latitude
-        let longitude = pin.longitude
-        
-        let boundingBox = FlickrClient.createBoundingBoxString(latitude, longitude: longitude)
-        
-        let parameters : [String: AnyObject] = [
-            FlickrClient.ParameterKeys.BoundingBox : boundingBox,
-            FlickrClient.ParameterKeys.PerPage: 12
-        ]
-        
-        
-        flickrClient.taskForGetMethod(parameters) { results, error in
-            if let results = results {
-                if let photosDictionary = results.valueForKey("photos") as? [String:AnyObject] {
-
-                    var totalPhotosVal = 0
-                    if let totalPhotos = photosDictionary["total"] as? String {
-                        totalPhotosVal = Int(totalPhotos)!
-                    }
-
-                    if totalPhotosVal > 0 {
-                        if let photosArray = photosDictionary["photo"] as? [[String: AnyObject]] {
-                            for photo in photosArray {
-                                let title = photo["title"] as! String
-                                let urlString = photo["url_m"] as! String
-                                let dict = [
-                                    "title": title,
-                                    "urlString": urlString
-                                ]
-                                // TODO maybe a scratch context here
-                                let newPhoto = Photograph(dictionary: dict, context: self.sharedContext)
-                                newPhoto.location = self.pin
-                            }
-                            dispatch_async(dispatch_get_main_queue()) {
-                                self.sharedInstance.saveContext()
-                                try! self.fetchedResultsController.performFetch()
-                                self.collectionView.reloadData()
-                            }
-                        }
+        let photographs = fetchedResultsController.fetchedObjects as! [Photograph]
+        if photographs.isEmpty && !pin.loadingNewPhotos {
+            flickrClient.loadPhotosForPin(pin: pin) { success, error in
+                // TODO: handle error
+                if success {
+                    do {
+                        try self.fetchedResultsController.performFetch()
+                    } catch _ {
+                        print("error occurred in perform fetch")
                     }
                 }
             }
-            
         }
     }
     
@@ -121,6 +94,8 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
     
 
     // MARK: collection view protocol
+    
+    
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         let sectionInfo = self.fetchedResultsController.sections![section]
         return sectionInfo.numberOfObjects
@@ -130,13 +105,30 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         let photograph = fetchedResultsController.objectAtIndexPath(indexPath) as! Photograph
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier("PhotoCell", forIndexPath: indexPath) as! PhotoCollectionViewCell
 
-        let url = NSURL(string: photograph.urlString)
-
-        if let imageData = NSData(contentsOfURL: url!) {
-            dispatch_async(dispatch_get_main_queue(), {
-                cell.photoImage.image = UIImage(data: imageData)
-            })
+        cell.activityIndicator.hidesWhenStopped = true
+        cell.activityIndicator.startAnimating()
+        
+        let savedImage = flickrClient.getFlickrImageForPhoto(photo: photograph)
+        
+        // check if the image is saved on disk...else load from url
+        if let image = savedImage {
+            cell.photoImage.image = image
+            cell.activityIndicator.stopAnimating()
+        } else {
+            dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)) { [unowned cell] in
+                if let url = NSURL(string: photograph.urlString) {
+                    if let imageData = try? NSData(contentsOfURL: url, options: []) {
+                        dispatch_async(dispatch_get_main_queue(), {
+                            self.flickrClient.saveFlickrImageToDisk(photo: photograph, imageData: imageData)
+                            cell.photoImage.image = UIImage(data: imageData)
+                            cell.activityIndicator.stopAnimating()
+                            
+                        })
+                    }
+                }
+            }
         }
+
 
         return cell
     }
@@ -164,6 +156,11 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
     
     // controller to update collection views
     
+    func controllerWillChangeContent(controller: NSFetchedResultsController) {
+        try! self.fetchedResultsController.performFetch()
+        //self.collectionView.reloadData()
+    }
+    
     func controller(controller: NSFetchedResultsController,
         didChangeSection sectionInfo: NSFetchedResultsSectionInfo,
         atIndex sectionIndex: Int,
@@ -182,20 +179,16 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
     }
     
     func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
-//        switch type {
-//            
-//        case .Insert:
-//            let photo = anObject as! Photograph
-//            photographs.append(photo)
-//            print(photographs)
-//            let path = NSIndexPath(forRow: photographs.count - 1, inSection: 0)
-//            collectionView.insertItemsAtIndexPaths([path])
-//        case .Delete:
-//            collectionView.deleteItemsAtIndexPaths([indexPath!])
-//            
-//        default:
-//            break
-//        }
+        switch type {
+            
+        case .Insert:
+            collectionView.insertItemsAtIndexPaths([newIndexPath!])
+        case .Delete:
+            collectionView.deleteItemsAtIndexPaths([indexPath!])
+            
+        default:
+            break
+        }
         
 //        case .Update:
 //            let cell = tableView.cellForRowAtIndexPath(indexPath!) as! TaskCancelingTableViewCell
@@ -205,7 +198,7 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
 //        case .Move:
 //            tableView.deleteRowsAtIndexPaths([indexPath!], withRowAnimation: .Fade)
 //            tableView.insertRowsAtIndexPaths([newIndexPath!], withRowAnimation: .Fade)
- //       }
+//        }
     }
     
     

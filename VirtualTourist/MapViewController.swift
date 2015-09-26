@@ -25,6 +25,10 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         return CoreDataStackManager.sharedInstance()
     }
     
+    var flickrClient: FlickrClient {
+        return FlickrClient.sharedInstance()
+    }
+    
     override func viewDidLoad() {
         super.viewDidLoad()
         longPressRecognizer = UILongPressGestureRecognizer(target: self, action: "handleLongPress:")
@@ -74,7 +78,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         if editMode {
             deleteAnnotation(view.annotation!)
         } else {
-            
             // extract the given pin object to pass to the controller
             let pinAnnotation = view.annotation as! PinAnnotation
             
@@ -136,8 +139,45 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         let annotation = PinAnnotation(id: pin.id, coordinate: coordinate)
         mapView.addAnnotation(annotation)
         // we made changes, save the context
+        preloadImagesForNewlyAddedPin(pin)
         sharedInstance.saveContext()
     }
+    
+    // prefetch images and their data when pin is clicked
+    func preloadImagesForNewlyAddedPin(pin: Pin) {
+        flickrClient.loadPhotosForPin(pin: pin) { success, error in
+            
+            let fetchRequest = NSFetchRequest(entityName: "Photograph")
+            fetchRequest.predicate = NSPredicate(format: "location == %@", pin)
+            fetchRequest.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+            
+            let photosAtPin: [Photograph]?
+            
+            do {
+                photosAtPin = try self.sharedContext.executeFetchRequest(fetchRequest) as? [Photograph]
+            } catch _ {
+                photosAtPin = nil
+            }
+            
+            if let photos = photosAtPin {
+                for photo in photos {
+                    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)) { [unowned self] in
+                        if let url = NSURL(string: photo.urlString) {
+                            if let imageData = try? NSData(contentsOfURL: url, options: []) {
+                                dispatch_async(dispatch_get_main_queue(), {
+                                    self.flickrClient.saveFlickrImageToDisk(photo: photo, imageData: imageData)
+                                    
+                                })
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    
+    
     
     // sets pins on the map from the core data saved values
     func initAnnotations() {

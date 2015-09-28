@@ -29,14 +29,12 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
     var stackManager: CoreDataStackManager {
         return CoreDataStackManager.sharedInstance()
     }
-    // flicker client
     let flickrClient = FlickrClient.sharedInstance()
     
     override func viewDidLoad() {
         super.viewDidLoad()
 
         fetchedResultsController.delegate = self
-        
     }
     
     override func viewWillAppear(animated: Bool) {
@@ -45,7 +43,10 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         do {
             try self.fetchedResultsController.performFetch()
         } catch _ {
-            print("error occurred in perform fetch")
+            // if we have error getting fetch need to prompt user
+            let ac = UIAlertController(title: "No Photos Founc", message: "Sorry, no photos were fetched for that location, please go back and try a new pin", preferredStyle: .Alert)
+            ac.addAction(UIAlertAction(title: "OK", style: .Default, handler: nil))
+            presentViewController(ac, animated: true, completion: nil)
         }
         getPhotos()
     }
@@ -76,13 +77,23 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
     }
     
 
-    // TODO: ERROR CHECKING ETC, AND CHECKING CORE DATA FOR VALUES
     func getPhotos() {
-        
         let photographs = fetchedResultsController.fetchedObjects as! [Photograph]
         if photographs.isEmpty {
             flickrClient.loadPhotosForPin(pin: pin) { success, error in
-                // TODO: handle error
+                if let error = error {
+                    if error.code == -1009 {
+                        let ac = UIAlertController(title: "Check Connection", message: "Oops! It looks like you are not connected to the internet. Please connect to the internet to view new photos", preferredStyle: .Alert)
+                        ac.addAction(UIAlertAction(title: "Ok", style: .Default, handler: nil))
+                        self.presentViewController(ac, animated: true, completion: nil)
+                    } else {
+                        let ac = UIAlertController(title: "Unable to load photos", message: "Sorry, the service is unable to load photos at this time, please try agin later", preferredStyle: .Alert)
+                        ac.addAction(UIAlertAction(title: "Ok", style: .Default, handler: nil))
+                        self.presentViewController(ac, animated: true, completion: nil)
+                    }
+                    // stop execution here if error
+                    return
+                }
                 if success {
                     dispatch_async(dispatch_get_main_queue()) {
                         self.collectionView.reloadData()
@@ -110,7 +121,6 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         }()
 
     // MARK: collection view protocol
-    
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         let sectionInfo = self.fetchedResultsController.sections![section]
         return sectionInfo.numberOfObjects
@@ -152,26 +162,23 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         }
     }
     
+    // sets size to be 3 x 3 grid
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
         return CGSize(width: collectionView.frame.size.width / 3, height: collectionView.frame.size.width / 3)
     }
-    
     
     func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
         let photo = fetchedResultsController.objectAtIndexPath(indexPath) as! Photograph
         // if the photo is not in the array to delete add it, else remove it (toggle like functionality
         let cell = collectionView.cellForItemAtIndexPath(indexPath) as! PhotoCollectionViewCell
         if let photoInArray = photosPendingDeletion.indexOf(photo) {
-
             photosPendingDeletion.removeAtIndex(photoInArray)
             cell.overlayCell.hidden = true
             cell.overlayCell.alpha = 0.0
-            
         } else {
             photosPendingDeletion.append(photo)
             cell.overlayCell.hidden = false
             cell.overlayCell.alpha = 0.5
-            
         }
         
         if photosPendingDeletion.count > 0 {
@@ -179,12 +186,10 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         } else {
             showNewCollectionButton()
         }
-        
     }
     
     
-    // controller to update collection views
-    
+    // controller to update collection views / keep in sync when underlying changes happen
     func controllerWillChangeContent(controller: NSFetchedResultsController) {
         dispatch_async(dispatch_get_main_queue()) {
             self.collectionView.reloadData()
@@ -226,21 +231,10 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
             self.showNewCollectionButton()
         }
     }
-
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    // to resize cells on rotation of device
+    override func willRotateToInterfaceOrientation(toInterfaceOrientation: UIInterfaceOrientation, duration: NSTimeInterval) {
+        collectionView.reloadData()
+    }
     
 }

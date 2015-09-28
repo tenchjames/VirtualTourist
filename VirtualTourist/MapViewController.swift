@@ -38,13 +38,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         let barButtonItem = UIBarButtonItem(title: "Edit", style: UIBarButtonItemStyle.Plain, target: self, action: "toggleEdit")
         navigationItem.rightBarButtonItem = barButtonItem
         
-
         // loops over annotations in the context and places them on the map
         initAnnotations()
-    }
-    
-    override func viewWillAppear(animated: Bool) {
-        super.viewWillAppear(animated)
     }
 
     func handleLongPress(recognizer: UILongPressGestureRecognizer) {
@@ -63,7 +58,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         addAnnotation(mapCoordinate)
     }
     
-
     func mapView(mapView: MKMapView, didAddAnnotationViews views: [MKAnnotationView]) {
         // animate the pin drop
         for view in views {
@@ -75,7 +69,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         }
     }
     
-
     func mapView(mapView: MKMapView, didSelectAnnotationView view: MKAnnotationView) {
         // need to take action based on edit mode or not
         if editMode {
@@ -87,13 +80,14 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             if let pin = getPinObjectByPinId(pinAnnotation.id) as? Pin  {
                 let controller = self.storyboard?.instantiateViewControllerWithIdentifier("PhotoViewController") as! PhotoAlbumViewController
                 controller.pin = pin
+                let backButton = UIBarButtonItem(title: "Ok", style: .Plain, target: self, action: nil)
+                self.navigationItem.backBarButtonItem = backButton
                 
                 self.navigationController?.pushViewController(controller, animated: true)
                 mapView.deselectAnnotation(view.annotation, animated: false)
             }
         }
     }
-    
     
     func getPinObjectByPinId(id: String) -> NSManagedObject? {
         let fetchRequest = NSFetchRequest(entityName: "Pin")
@@ -105,8 +99,9 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         
         do {
             results = try sharedContext.executeFetchRequest(fetchRequest) as? [NSManagedObject]
-        } catch let error as NSError {
-            print(error)
+        } catch _ {
+            // if we have error, set result should be nil
+            results = nil
         }
         
         if let result = results?.first {
@@ -139,6 +134,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             "longitude": longitude]
         let pin = Pin(dictionary: dict, context: sharedContext)
         let annotation = PinAnnotation(id: pin.id, coordinate: coordinate)
+        
         mapView.addAnnotation(annotation)
         // we made changes, save the context
         preloadImagesForNewlyAddedPin(pin)
@@ -163,6 +159,7 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             
             if let photos = photosAtPin {
                 for photo in photos {
+                    // get photos on background threads
                     dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INITIATED, 0)) { [unowned self] in
                         if let url = NSURL(string: photo.urlString) {
                             if let imageData = try? NSData(contentsOfURL: url, options: []) {
@@ -177,7 +174,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         }
     }
     
-
     func toggleEdit() {
         editMode = !editMode
         if editMode {
@@ -187,7 +183,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
             deletePinsLabel.hidden = true
             navigationItem.rightBarButtonItem?.title = "Edit"
         }
-        
     }
     
     // sets pins on the map from the core data saved values
@@ -195,18 +190,18 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         //let pins = fetchedResultsController.fetchedObjects as! [Pin]
         let fetchRequest = NSFetchRequest(entityName: "Pin")
         fetchRequest.sortDescriptors = [NSSortDescriptor(key: "id", ascending: false)]
-        
+        let pins: [Pin]
         do {
-            let pins = try sharedContext.executeFetchRequest(fetchRequest) as! [Pin]
-            for pin in pins {
-                let coordinate = CLLocationCoordinate2DMake(pin.latitude, pin.longitude)
-                let annotation = PinAnnotation(id: pin.id, coordinate: coordinate)
-                mapView.addAnnotation(annotation)
-            }
+            pins = try sharedContext.executeFetchRequest(fetchRequest) as! [Pin]
         } catch {
-            print("error loading pins")
+            pins = []
         }
+        for pin in pins {
+            let coordinate = CLLocationCoordinate2DMake(pin.latitude, pin.longitude)
+            let annotation = PinAnnotation(id: pin.id, coordinate: coordinate)
+            mapView.addAnnotation(annotation)
+        }
+        
     }
-
 }
 

@@ -46,7 +46,6 @@ class FlickrClient: NSObject {
         let request = NSURLRequest(URL: url)
         // 4. make the request
         let task = session.dataTaskWithRequest(request) {data, response, downloadError in
-            
             if let error = downloadError {
                 completionHandler(result: nil, error: error)
             } else {
@@ -60,33 +59,30 @@ class FlickrClient: NSObject {
         }
         // 7. start the task
         task.resume()
-        
         return task
     }
     
-    
     func loadPhotosForPin(pin pin: Pin, completionHandler: (success: Bool, error: NSError?) -> Void) {
+        // for randomization of images
         var photoCount = Int(pin.lastPhotoCount)
         if photoCount > 4000 {
             photoCount = 4000
         }
-        let pages = photoCount / 21
+        let pages = photoCount / FlickrClient.ParameterValues.ImagesPerPage
         let randomPage = GKRandomSource.sharedRandom().nextIntWithUpperBound(pages) + 1
         let latitude = pin.latitude
         let longitude = pin.longitude
         let boundingBox = FlickrClient.createBoundingBoxString(latitude, longitude: longitude)
         let parameters : [String: AnyObject] = [
             FlickrClient.ParameterKeys.BoundingBox : boundingBox,
-            FlickrClient.ParameterKeys.PerPage: 21,
+            FlickrClient.ParameterKeys.PerPage: FlickrClient.ParameterValues.ImagesPerPage,
             FlickrClient.ParameterKeys.Page : randomPage
         ]
         
         taskForGetMethod(parameters) { results, error in
             if let error = error {
                 completionHandler(success: false, error: error)
-                print(error)
             } else {
-                
                 if let results = results {
                     if let photosDictionary = results.valueForKey("photos") as? [String:AnyObject] {
                         var totalPhotosVal = 0
@@ -113,7 +109,7 @@ class FlickrClient: NSObject {
                         }
                     }
                 }
-                // save the new objects in the context
+                // after all work is done save the new objects in the context
                 dispatch_async(dispatch_get_main_queue()) {
                     self.stackManager.saveContext()
                     completionHandler(success: true, error: nil)

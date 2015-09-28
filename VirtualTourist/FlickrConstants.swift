@@ -35,6 +35,7 @@ extension FlickrClient {
         static let SafeSearch = "1"
         static let JsonDataFormat = "json"
         static let JsonNoCallback = "1"
+        static let ImagesPerPage = 21
     }
 
     // body uses some response keys

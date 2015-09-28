@@ -19,7 +19,6 @@ class Pin: NSManagedObject {
     @NSManaged var photographs: [Photograph]
     
     
-    // add any additional atributes below
     override init(entity: NSEntityDescription, insertIntoManagedObjectContext context: NSManagedObjectContext?) {
         super.init(entity: entity, insertIntoManagedObjectContext: context)
     }

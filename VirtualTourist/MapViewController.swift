@@ -11,9 +11,9 @@ import UIKit
 import CoreData
 
 class MapViewController: UIViewController, MKMapViewDelegate {
-    @IBOutlet weak var editButton: UIBarButtonItem!
     @IBOutlet weak var mapView: MKMapView!
     
+    @IBOutlet weak var deletePinsLabel: UILabel!
     var longPressRecognizer: UILongPressGestureRecognizer!
     var editMode = false
     
@@ -34,6 +34,9 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         longPressRecognizer = UILongPressGestureRecognizer(target: self, action: "handleLongPress:")
         mapView.addGestureRecognizer(longPressRecognizer)
         mapView.delegate = self
+        
+        let barButtonItem = UIBarButtonItem(title: "Edit", style: UIBarButtonItemStyle.Plain, target: self, action: "toggleEdit")
+        navigationItem.rightBarButtonItem = barButtonItem
         
 
         // loops over annotations in the context and places them on the map
@@ -103,7 +106,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         do {
             results = try sharedContext.executeFetchRequest(fetchRequest) as? [NSManagedObject]
         } catch let error as NSError {
-            // TODO: HANDLE ERROR BETTER
             print(error)
         }
         
@@ -115,6 +117,8 @@ class MapViewController: UIViewController, MKMapViewDelegate {
     
     func deleteAnnotation(annotation: MKAnnotation) {
         let pinToDelete = annotation as! PinAnnotation
+        // loop over map pins, when found with this id
+        // remove it, then delete from context
         for mapPin in mapView.annotations as! [PinAnnotation] {
             if mapPin.id == pinToDelete.id {
                 mapView.removeAnnotation(mapPin)
@@ -122,8 +126,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                     sharedContext.deleteObject(pinObject)
                     sharedInstance.saveContext()
                 }
-                // TODO: handle not getting a pin back...this would be a very odd / bad case
-                // because we expect this pin with this id to be in the context
                 return
             }
         }
@@ -166,7 +168,6 @@ class MapViewController: UIViewController, MKMapViewDelegate {
                             if let imageData = try? NSData(contentsOfURL: url, options: []) {
                                 dispatch_async(dispatch_get_main_queue(), {
                                     self.flickrClient.saveFlickrImageToDisk(photo: photo, imageData: imageData)
-                                    
                                 })
                             }
                         }
@@ -176,8 +177,18 @@ class MapViewController: UIViewController, MKMapViewDelegate {
         }
     }
     
-    
-    
+
+    func toggleEdit() {
+        editMode = !editMode
+        if editMode {
+            deletePinsLabel.hidden = false
+            navigationItem.rightBarButtonItem?.title = "Done"
+        } else {
+            deletePinsLabel.hidden = true
+            navigationItem.rightBarButtonItem?.title = "Edit"
+        }
+        
+    }
     
     // sets pins on the map from the core data saved values
     func initAnnotations() {

@@ -31,7 +31,7 @@ class Photograph: NSManagedObject {
         // Dictionary
         title = dictionary["title"] as! String
         urlString = dictionary["urlString"] as! String
-        // doubles as the file location as well
+        // doubles as the file location that is saved in the document directory
         flickrId = dictionary["flickrId"] as! String
     }
     
@@ -41,8 +41,8 @@ class Photograph: NSManagedObject {
         let fileManger = NSFileManager.defaultManager()
         do {
             try fileManger.removeItemAtPath(imagePath)
-        } catch let error {
-            print(error)
+        } catch _ {
+            // if file is not found will throw an error...ok we don't want to delete a file already deleted
         }
         
     }

@@ -42,7 +42,6 @@ class FlickrClient: NSObject {
         // 2. build the url
         let urlString = Constants.BASE_URL  + escapedParameters(mutableparameters)
         let url = NSURL(string: urlString)!
-        
         // 3. configure request
         let request = NSURLRequest(URL: url)
         // 4. make the request
@@ -67,8 +66,11 @@ class FlickrClient: NSObject {
     
     
     func loadPhotosForPin(pin pin: Pin, completionHandler: (success: Bool, error: NSError?) -> Void) {
-        pin.loadingNewPhotos = true
-        let pages = Int(pin.lastPhotoCount) / 21
+        var photoCount = Int(pin.lastPhotoCount)
+        if photoCount > 4000 {
+            photoCount = 4000
+        }
+        let pages = photoCount / 21
         let randomPage = GKRandomSource.sharedRandom().nextIntWithUpperBound(pages) + 1
         let latitude = pin.latitude
         let longitude = pin.longitude
@@ -81,43 +83,41 @@ class FlickrClient: NSObject {
         
         taskForGetMethod(parameters) { results, error in
             if let error = error {
-                pin.loadingNewPhotos = false
                 completionHandler(success: false, error: error)
-                print("error")
-                return
-            }
-            
-            if let results = results {
-                if let photosDictionary = results.valueForKey("photos") as? [String:AnyObject] {
-                    var totalPhotosVal = 0
-                    if let totalPhotos = photosDictionary["total"] as? String {
-                        totalPhotosVal = Int(totalPhotos)!
-                        // update count so we can randomize pages we pull at this location
-                        pin.lastPhotoCount = totalPhotosVal
-                    }
-                    if totalPhotosVal > 0 {
-                        if let photosArray = photosDictionary["photo"] as? [[String: AnyObject]] {
-                            for photo in photosArray {
-                                let title = photo["title"] as! String
-                                let urlString = photo["url_m"] as! String
-                                let flickrId = photo["id"] as! String
-                                let dict : [String: AnyObject] = [
-                                    "title": title,
-                                    "urlString": urlString,
-                                    "flickrId": flickrId
-                                ]
-                                let newPhoto = Photograph(dictionary: dict, context: self.sharedContext)
-                                newPhoto.location = pin
+                print(error)
+            } else {
+                
+                if let results = results {
+                    if let photosDictionary = results.valueForKey("photos") as? [String:AnyObject] {
+                        var totalPhotosVal = 0
+                        if let totalPhotos = photosDictionary["total"] as? String {
+                            totalPhotosVal = Int(totalPhotos)!
+                            // update count so we can randomize pages we pull at this location
+                            pin.lastPhotoCount = totalPhotosVal
+                        }
+                        if totalPhotosVal > 0 {
+                            if let photosArray = photosDictionary["photo"] as? [[String: AnyObject]] {
+                                for photo in photosArray {
+                                    let title = photo["title"] as! String
+                                    let urlString = photo["url_m"] as! String
+                                    let flickrId = photo["id"] as! String
+                                    let dict : [String: AnyObject] = [
+                                        "title": title,
+                                        "urlString": urlString,
+                                        "flickrId": flickrId
+                                    ]
+                                    let newPhoto = Photograph(dictionary: dict, context: self.sharedContext)
+                                    newPhoto.location = pin
+                                }
                             }
                         }
                     }
                 }
-            }
-            // save the new objects in the context
-            dispatch_async(dispatch_get_main_queue()) {
-                self.stackManager.saveContext()
-                pin.loadingNewPhotos = false
-                completionHandler(success: true, error: nil)
+                // save the new objects in the context
+                dispatch_async(dispatch_get_main_queue()) {
+                    self.stackManager.saveContext()
+                    completionHandler(success: true, error: nil)
+                }
             }
         }
     }

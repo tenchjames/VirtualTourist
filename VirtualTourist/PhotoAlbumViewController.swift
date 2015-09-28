@@ -43,7 +43,6 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         super.viewWillAppear(animated)
         showNewCollectionButton()
         do {
-            
             try self.fetchedResultsController.performFetch()
         } catch _ {
             print("error occurred in perform fetch")
@@ -79,16 +78,14 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
 
     // TODO: ERROR CHECKING ETC, AND CHECKING CORE DATA FOR VALUES
     func getPhotos() {
-        print("about to get photos")
+        
         let photographs = fetchedResultsController.fetchedObjects as! [Photograph]
-        if photographs.isEmpty && !pin.loadingNewPhotos {
-
+        if photographs.isEmpty {
             flickrClient.loadPhotosForPin(pin: pin) { success, error in
                 // TODO: handle error
                 if success {
                     dispatch_async(dispatch_get_main_queue()) {
                         self.collectionView.reloadData()
-
                     }
                 }
             }
@@ -112,10 +109,7 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         
         }()
 
-    
-
     // MARK: collection view protocol
-    
     
     func collectionView(collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         let sectionInfo = self.fetchedResultsController.sections![section]
@@ -128,6 +122,9 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         
         cell.activityIndicator.hidesWhenStopped = true
         cell.activityIndicator.startAnimating()
+        cell.overlayCell.alpha = 0.0
+        cell.overlayCell.hidden = true
+        cell.photoImage.image = UIImage(named: "placeHolder")
         configureCell(cell, photograph: photograph)
 
         return cell
@@ -135,8 +132,7 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
     
     func configureCell(cell: PhotoCollectionViewCell, photograph: Photograph) {
         let savedImage = flickrClient.getFlickrImageForPhoto(photo: photograph)
-        cell.overlayCell.alpha = 0.0
-        cell.overlayCell.hidden = true
+
         // check if the image is saved on disk...else load from url
         if let image = savedImage {
             cell.photoImage.image = image
@@ -149,7 +145,6 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
                             self.flickrClient.saveFlickrImageToDisk(photo: photograph, imageData: imageData)
                             cell.photoImage.image = UIImage(data: imageData)
                             cell.activityIndicator.stopAnimating()
-                            
                         })
                     }
                 }
@@ -207,6 +202,7 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         do {
             photosAtPin = try self.sharedContext.executeFetchRequest(fetchRequest) as? [Photograph]
         } catch _ {
+            print("error getting photosAtPin")
             photosAtPin = nil
         }
         

@@ -19,20 +19,31 @@
                             <mapView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" mapType="standard" translatesAutoresizingMaskIntoConstraints="NO" id="6Un-91-mOm">
                                 <rect key="frame" x="0.0" y="64" width="600" height="536"/>
                             </mapView>
+                            <label hidden="YES" opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Tap Pins to Delete" textAlignment="center" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="1Ea-E8-f36">
+                                <rect key="frame" x="0.0" y="570" width="600" height="30"/>
+                                <color key="backgroundColor" red="1" green="0.0" blue="0.0" alpha="1" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="height" constant="30" id="78k-J0-EVq"/>
+                                </constraints>
+                                <fontDescription key="fontDescription" name="HelveticaNeue" family="Helvetica Neue" pointSize="17"/>
+                                <color key="textColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                <nil key="highlightedColor"/>
+                            </label>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
                         <constraints>
                             <constraint firstAttribute="trailing" secondItem="6Un-91-mOm" secondAttribute="trailing" id="80T-Js-iMf"/>
                             <constraint firstItem="6Un-91-mOm" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="BF0-BU-mGp"/>
+                            <constraint firstItem="1Ea-E8-f36" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="Shm-8I-FvA"/>
+                            <constraint firstAttribute="trailing" secondItem="1Ea-E8-f36" secondAttribute="trailing" id="X10-zg-5Be"/>
                             <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="6Un-91-mOm" secondAttribute="bottom" id="YY2-WV-5yV"/>
+                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="1Ea-E8-f36" secondAttribute="bottom" id="bTV-NR-yWM"/>
                             <constraint firstItem="6Un-91-mOm" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" id="l8n-Ts-fLm"/>
                         </constraints>
                     </view>
-                    <navigationItem key="navigationItem" id="TeP-nI-cxU">
-                        <barButtonItem key="rightBarButtonItem" systemItem="edit" id="vXA-Nu-9Ng"/>
-                    </navigationItem>
+                    <navigationItem key="navigationItem" id="TeP-nI-cxU"/>
                     <connections>
-                        <outlet property="editButton" destination="vXA-Nu-9Ng" id="DZC-MK-LMR"/>
+                        <outlet property="deletePinsLabel" destination="1Ea-E8-f36" id="CQd-Kc-PAf"/>
                         <outlet property="mapView" destination="6Un-91-mOm" id="Hnn-qb-md4"/>
                     </connections>
                 </viewController>
@@ -72,13 +83,13 @@
                                                 <imageView userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="251" verticalHuggingPriority="251" translatesAutoresizingMaskIntoConstraints="NO" id="SWm-V1-WYh">
                                                     <rect key="frame" x="1" y="1" width="48" height="48"/>
                                                 </imageView>
-                                                <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="D7X-Vb-wEy">
-                                                    <rect key="frame" x="15" y="15" width="20" height="20"/>
-                                                </activityIndicatorView>
                                                 <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="0pw-eW-k1w">
                                                     <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
                                                     <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                                 </view>
+                                                <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="D7X-Vb-wEy">
+                                                    <rect key="frame" x="15" y="15" width="20" height="20"/>
+                                                </activityIndicatorView>
                                             </subviews>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         </view>
@@ -122,7 +133,7 @@
                             </button>
                             <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="bf8-2W-8y6">
                                 <rect key="frame" x="0.0" y="570" width="600" height="30"/>
-                                <state key="normal" title="Delete Selected Photos"/>
+                                <state key="normal" title="Remove Selected Photos"/>
                                 <connections>
                                     <action selector="deleteSelectedPhotosTouchUP:" destination="BCk-cC-qu8" eventType="touchUpInside" id="OIo-GV-zcu"/>
                                 </connections>

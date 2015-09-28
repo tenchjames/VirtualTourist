@@ -87,7 +87,6 @@ class FlickrClient: NSObject {
                 return
             }
             
-            
             if let results = results {
                 if let photosDictionary = results.valueForKey("photos") as? [String:AnyObject] {
                     var totalPhotosVal = 0

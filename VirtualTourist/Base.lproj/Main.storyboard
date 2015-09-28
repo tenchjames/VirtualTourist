@@ -125,7 +125,6 @@
                                 <state key="normal" title="Delete Selected Photos"/>
                                 <connections>
                                     <action selector="deleteSelectedPhotosTouchUP:" destination="BCk-cC-qu8" eventType="touchUpInside" id="OIo-GV-zcu"/>
-                                    <action selector="newCollectionButtonTouchUp:" destination="BCk-cC-qu8" eventType="touchUpInside" id="Kel-Wi-Veu"/>
                                 </connections>
                             </button>
                         </subviews>

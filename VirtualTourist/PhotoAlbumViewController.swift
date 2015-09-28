@@ -26,7 +26,7 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         return CoreDataStackManager.sharedInstance().managedObjectContext
     }
     
-    var sharedInstance: CoreDataStackManager {
+    var stackManager: CoreDataStackManager {
         return CoreDataStackManager.sharedInstance()
     }
     // flicker client
@@ -42,6 +42,12 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
         showNewCollectionButton()
+        do {
+            
+            try self.fetchedResultsController.performFetch()
+        } catch _ {
+            print("error occurred in perform fetch")
+        }
         getPhotos()
     }
     
@@ -73,9 +79,7 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
 
     // TODO: ERROR CHECKING ETC, AND CHECKING CORE DATA FOR VALUES
     func getPhotos() {
-        do {
-            try fetchedResultsController.performFetch()
-        } catch {}
+        print("about to get photos")
         let photographs = fetchedResultsController.fetchedObjects as! [Photograph]
         if photographs.isEmpty && !pin.loadingNewPhotos {
 
@@ -83,13 +87,8 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
                 // TODO: handle error
                 if success {
                     dispatch_async(dispatch_get_main_queue()) {
-                        do {
-                            
-                            try self.fetchedResultsController.performFetch()
-                            self.collectionView.reloadData()
-                        } catch _ {
-                            print("error occurred in perform fetch")
-                        }
+                        self.collectionView.reloadData()
+
                     }
                 }
             }
@@ -166,7 +165,6 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
     func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
         let photo = fetchedResultsController.objectAtIndexPath(indexPath) as! Photograph
         // if the photo is not in the array to delete add it, else remove it (toggle like functionality
-        //let cell = collectionView.dequeueReusableCellWithReuseIdentifier("PhotoCell", forIndexPath: indexPath) as! PhotoCollectionViewCell
         let cell = collectionView.cellForItemAtIndexPath(indexPath) as! PhotoCollectionViewCell
         if let photoInArray = photosPendingDeletion.indexOf(photo) {
 
@@ -193,52 +191,12 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
     // controller to update collection views
     
     func controllerWillChangeContent(controller: NSFetchedResultsController) {
-        
         dispatch_async(dispatch_get_main_queue()) {
-            try! self.fetchedResultsController.performFetch()
             self.collectionView.reloadData()
         }
     }
     
-    func controller(controller: NSFetchedResultsController,
-        didChangeSection sectionInfo: NSFetchedResultsSectionInfo,
-        atIndex sectionIndex: Int,
-        forChangeType type: NSFetchedResultsChangeType) {
-//            switch type {
-//            case .Insert:
-//                
-//                self.collectionView.insertSections(NSIndexSet(index: sectionIndex))
-//                
-//            case .Delete:
-//                self.collectionView.deleteSections(NSIndexSet(index: sectionIndex))
-//                
-//            default:
-//                return
-//            }
-    }
-    
-    func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
-        
-//        switch type {
-//            
-//        case .Insert:
-//            collectionView.insertItemsAtIndexPaths([newIndexPath!])
-//        case .Delete:
-//            collectionView.deleteItemsAtIndexPaths([indexPath!])
-//        case .Update:
-//            let cell = collectionView.cellForItemAtIndexPath(indexPath!) as! PhotoCollectionViewCell
-//            let photograph = controller.objectAtIndexPath(indexPath!) as! Photograph
-//            configureCell(cell, photograph: photograph)
-//        
-//        case .Move:
-//            collectionView.deleteItemsAtIndexPaths([indexPath!])
-//            collectionView.insertItemsAtIndexPaths([newIndexPath!])
-//        }
-    }
-    
     @IBAction func newCollectionButtonTouchUp(sender: AnyObject) {
-
-        
         // just for testing
         let fetchRequest = NSFetchRequest(entityName: "Photograph")
         fetchRequest.predicate = NSPredicate(format: "location == %@", pin)
@@ -258,6 +216,7 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
                     self.sharedContext.deleteObject(photo)
                 }
             }
+            self.stackManager.saveContext()
             self.getPhotos()
         }
     }
@@ -267,9 +226,9 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
             for photo in self.photosPendingDeletion {
                 self.sharedContext.deleteObject(photo)
             }
+            self.stackManager.saveContext()
+            self.showNewCollectionButton()
         }
-        showNewCollectionButton()
-        
     }
 
     

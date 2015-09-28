@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		B729B3A11BB75F7300838736 /* Helpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = B729B3A01BB75F7300838736 /* Helpers.swift */; settings = {ASSET_TAGS = (); }; };
 		B7BC938C1BB22FF4008D4CDA /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7BC938B1BB22FF4008D4CDA /* AppDelegate.swift */; };
 		B7BC938E1BB22FF4008D4CDA /* MapViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = B7BC938D1BB22FF4008D4CDA /* MapViewController.swift */; };
 		B7BC93911BB22FF4008D4CDA /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B7BC938F1BB22FF4008D4CDA /* Main.storyboard */; };
@@ -25,6 +26,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		B729B3A01BB75F7300838736 /* Helpers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Helpers.swift; sourceTree = "<group>"; };
 		B7BC93881BB22FF4008D4CDA /* VirtualTourist.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VirtualTourist.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		B7BC938B1BB22FF4008D4CDA /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		B7BC938D1BB22FF4008D4CDA /* MapViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MapViewController.swift; sourceTree = "<group>"; };
@@ -122,6 +124,7 @@
 				B7BC939A1BB22FF4008D4CDA /* Info.plist */,
 				B7BC93971BB22FF4008D4CDA /* LaunchScreen.storyboard */,
 				B7BC952F1BB38AD2008D4CDA /* CoreDataStackManager.swift */,
+				B729B3A01BB75F7300838736 /* Helpers.swift */,
 			);
 			name = SupportingFiles;
 			sourceTree = "<group>";
@@ -221,6 +224,7 @@
 				B7BC94CE1BB34461008D4CDA /* PhotoAlbumViewController.swift in Sources */,
 				B7BC938C1BB22FF4008D4CDA /* AppDelegate.swift in Sources */,
 				B7BC93941BB22FF4008D4CDA /* VirtualTourist.xcdatamodeld in Sources */,
+				B729B3A11BB75F7300838736 /* Helpers.swift in Sources */,
 				B7BC95301BB38AD2008D4CDA /* CoreDataStackManager.swift in Sources */,
 				B7BC95321BB39BDA008D4CDA /* PinAnnotation.swift in Sources */,
 				B7BC953B1BB44756008D4CDA /* PhotoCollectionViewCell.swift in Sources */,

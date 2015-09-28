@@ -14,9 +14,12 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
     UICollectionViewDataSource, UICollectionViewDelegate, UICollectionViewDelegateFlowLayout  {
     
     @IBOutlet weak var collectionView: UICollectionView!
+    @IBOutlet weak var newCollectionButton: UIButton!
+    @IBOutlet weak var deleteSelectedButton: UIButton!
 
     var pin: Pin!
-
+    var photosPendingDeletion = [Photograph]()
+    
     @IBOutlet weak var mapView: MKMapView!
     
     var sharedContext: NSManagedObjectContext {
@@ -33,15 +36,12 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         super.viewDidLoad()
 
         fetchedResultsController.delegate = self
-        // let coredata handle pin management
-        do {
-            try fetchedResultsController.performFetch()
-        } catch {}
         
     }
     
     override func viewWillAppear(animated: Bool) {
         super.viewWillAppear(animated)
+        showNewCollectionButton()
         getPhotos()
     }
     
@@ -56,18 +56,40 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
         mapView.addAnnotation(annotation)
     }
 
+    func showNewCollectionButton() {
+        newCollectionButton.hidden = false
+        deleteSelectedButton.hidden = true
+        newCollectionButton.enabled = true
+        deleteSelectedButton.enabled = false
+    }
+    
+    func showDeleteSelectedButton() {
+        deleteSelectedButton.hidden = false
+        newCollectionButton.hidden = true
+        deleteSelectedButton.enabled = true
+        newCollectionButton.enabled = false
+    }
+    
 
     // TODO: ERROR CHECKING ETC, AND CHECKING CORE DATA FOR VALUES
     func getPhotos() {
+        do {
+            try fetchedResultsController.performFetch()
+        } catch {}
         let photographs = fetchedResultsController.fetchedObjects as! [Photograph]
         if photographs.isEmpty && !pin.loadingNewPhotos {
+
             flickrClient.loadPhotosForPin(pin: pin) { success, error in
                 // TODO: handle error
                 if success {
-                    do {
-                        try self.fetchedResultsController.performFetch()
-                    } catch _ {
-                        print("error occurred in perform fetch")
+                    dispatch_async(dispatch_get_main_queue()) {
+                        do {
+                            
+                            try self.fetchedResultsController.performFetch()
+                            self.collectionView.reloadData()
+                        } catch _ {
+                            print("error occurred in perform fetch")
+                        }
                     }
                 }
             }
@@ -104,12 +126,18 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
     func collectionView(collectionView: UICollectionView, cellForItemAtIndexPath indexPath: NSIndexPath) -> UICollectionViewCell {
         let photograph = fetchedResultsController.objectAtIndexPath(indexPath) as! Photograph
         let cell = collectionView.dequeueReusableCellWithReuseIdentifier("PhotoCell", forIndexPath: indexPath) as! PhotoCollectionViewCell
-
+        
         cell.activityIndicator.hidesWhenStopped = true
         cell.activityIndicator.startAnimating()
-        
+        configureCell(cell, photograph: photograph)
+
+        return cell
+    }
+    
+    func configureCell(cell: PhotoCollectionViewCell, photograph: Photograph) {
         let savedImage = flickrClient.getFlickrImageForPhoto(photo: photograph)
-        
+        cell.overlayCell.alpha = 0.0
+        cell.overlayCell.hidden = true
         // check if the image is saved on disk...else load from url
         if let image = savedImage {
             cell.photoImage.image = image
@@ -128,9 +156,6 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
                 }
             }
         }
-
-
-        return cell
     }
     
     func collectionView(collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAtIndexPath indexPath: NSIndexPath) -> CGSize {
@@ -139,26 +164,40 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
     
     
     func collectionView(collectionView: UICollectionView, didSelectItemAtIndexPath indexPath: NSIndexPath) {
-//        let person = people[indexPath.item]
-//
-//        let alertController = UIAlertController(title: "Rename person", message: nil, preferredStyle: .Alert)
-//        alertController.addTextFieldWithConfigurationHandler(nil)
-//        alertController.addAction(UIAlertAction(title: "Cancel", style: .Cancel, handler: nil))
-//        alertController.addAction(UIAlertAction(title: "OK", style: .Default) {
-//            [unowned self, alertController] _ in
-//            let newName = alertController.textFields![0]
-//            person.name = newName.text!
-//            self.collectionView.reloadData()
-//            })
-//        presentViewController(alertController, animated: true, completion: nil)
+        let photo = fetchedResultsController.objectAtIndexPath(indexPath) as! Photograph
+        // if the photo is not in the array to delete add it, else remove it (toggle like functionality
+        //let cell = collectionView.dequeueReusableCellWithReuseIdentifier("PhotoCell", forIndexPath: indexPath) as! PhotoCollectionViewCell
+        let cell = collectionView.cellForItemAtIndexPath(indexPath) as! PhotoCollectionViewCell
+        if let photoInArray = photosPendingDeletion.indexOf(photo) {
+
+            photosPendingDeletion.removeAtIndex(photoInArray)
+            cell.overlayCell.hidden = true
+            cell.overlayCell.alpha = 0.0
+            
+        } else {
+            photosPendingDeletion.append(photo)
+            cell.overlayCell.hidden = false
+            cell.overlayCell.alpha = 0.5
+            
+        }
+        
+        if photosPendingDeletion.count > 0 {
+            showDeleteSelectedButton()
+        } else {
+            showNewCollectionButton()
+        }
+        
     }
     
     
     // controller to update collection views
     
     func controllerWillChangeContent(controller: NSFetchedResultsController) {
-        try! self.fetchedResultsController.performFetch()
-        //self.collectionView.reloadData()
+        
+        dispatch_async(dispatch_get_main_queue()) {
+            try! self.fetchedResultsController.performFetch()
+            self.collectionView.reloadData()
+        }
     }
     
     func controller(controller: NSFetchedResultsController,
@@ -179,27 +218,74 @@ class PhotoAlbumViewController: UIViewController, NSFetchedResultsControllerDele
     }
     
     func controller(controller: NSFetchedResultsController, didChangeObject anObject: AnyObject, atIndexPath indexPath: NSIndexPath?, forChangeType type: NSFetchedResultsChangeType, newIndexPath: NSIndexPath?) {
-        switch type {
-            
-        case .Insert:
-            collectionView.insertItemsAtIndexPaths([newIndexPath!])
-        case .Delete:
-            collectionView.deleteItemsAtIndexPaths([indexPath!])
-            
-        default:
-            break
-        }
         
-//        case .Update:
-//            let cell = tableView.cellForRowAtIndexPath(indexPath!) as! TaskCancelingTableViewCell
-//            let movie = controller.objectAtIndexPath(indexPath!) as! Movie
-//            self.configureCell(cell, movie: movie)
+//        switch type {
 //            
+//        case .Insert:
+//            collectionView.insertItemsAtIndexPaths([newIndexPath!])
+//        case .Delete:
+//            collectionView.deleteItemsAtIndexPaths([indexPath!])
+//        case .Update:
+//            let cell = collectionView.cellForItemAtIndexPath(indexPath!) as! PhotoCollectionViewCell
+//            let photograph = controller.objectAtIndexPath(indexPath!) as! Photograph
+//            configureCell(cell, photograph: photograph)
+//        
 //        case .Move:
-//            tableView.deleteRowsAtIndexPaths([indexPath!], withRowAnimation: .Fade)
-//            tableView.insertRowsAtIndexPaths([newIndexPath!], withRowAnimation: .Fade)
+//            collectionView.deleteItemsAtIndexPaths([indexPath!])
+//            collectionView.insertItemsAtIndexPaths([newIndexPath!])
 //        }
     }
+    
+    @IBAction func newCollectionButtonTouchUp(sender: AnyObject) {
+
+        
+        // just for testing
+        let fetchRequest = NSFetchRequest(entityName: "Photograph")
+        fetchRequest.predicate = NSPredicate(format: "location == %@", pin)
+        fetchRequest.sortDescriptors = [NSSortDescriptor(key: "title", ascending: true)]
+        
+        let photosAtPin: [Photograph]?
+        
+        do {
+            photosAtPin = try self.sharedContext.executeFetchRequest(fetchRequest) as? [Photograph]
+        } catch _ {
+            photosAtPin = nil
+        }
+        
+        dispatch_async(dispatch_get_main_queue()) {
+            if let photos = photosAtPin {
+                for photo in photos {
+                    self.sharedContext.deleteObject(photo)
+                }
+            }
+            self.getPhotos()
+        }
+    }
+    
+    @IBAction func deleteSelectedPhotosTouchUP(sender: AnyObject) {
+        dispatch_async(dispatch_get_main_queue()) {
+            for photo in self.photosPendingDeletion {
+                self.sharedContext.deleteObject(photo)
+            }
+        }
+        showNewCollectionButton()
+        
+    }
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     
 }

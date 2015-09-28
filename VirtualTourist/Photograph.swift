@@ -35,4 +35,17 @@ class Photograph: NSManagedObject {
         flickrId = dictionary["flickrId"] as! String
     }
     
+    override func prepareForDeletion() {
+        let imageName = self.flickrId
+        let imagePath = getDocumentsDirectory().stringByAppendingPathComponent(imageName)
+        let fileManger = NSFileManager.defaultManager()
+        do {
+            try fileManger.removeItemAtPath(imagePath)
+        } catch let error {
+            print(error)
+        }
+        
+    }
+    
+    
 }

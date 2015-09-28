@@ -83,6 +83,7 @@ class FlickrClient: NSObject {
             if let error = error {
                 pin.loadingNewPhotos = false
                 completionHandler(success: false, error: error)
+                print("error")
                 return
             }
             
@@ -135,13 +136,6 @@ class FlickrClient: NSObject {
             return image
         }
         return nil
-    }
-    
-    
-    func getDocumentsDirectory() -> NSString {
-        let paths = NSSearchPathForDirectoriesInDomains(.DocumentDirectory, .UserDomainMask, true)
-        let documentsDirectory = paths[0]
-        return documentsDirectory
     }
     
     class func createBoundingBoxString(latitude: Double, longitude: Double) -> String {

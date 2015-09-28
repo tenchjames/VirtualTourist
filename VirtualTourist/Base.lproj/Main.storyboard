@@ -53,7 +53,7 @@
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <subviews>
                             <collectionView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" translatesAutoresizingMaskIntoConstraints="NO" id="f0Z-ei-a9W">
-                                <rect key="frame" x="0.0" y="140" width="600" height="460"/>
+                                <rect key="frame" x="0.0" y="140" width="600" height="430"/>
                                 <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                                 <collectionViewFlowLayout key="collectionViewLayout" minimumLineSpacing="0.0" minimumInteritemSpacing="0.0" id="oCP-iJ-0Ia">
                                     <size key="itemSize" width="50" height="50"/>
@@ -75,19 +75,28 @@
                                                 <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" style="gray" translatesAutoresizingMaskIntoConstraints="NO" id="D7X-Vb-wEy">
                                                     <rect key="frame" x="15" y="15" width="20" height="20"/>
                                                 </activityIndicatorView>
+                                                <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="0pw-eW-k1w">
+                                                    <rect key="frame" x="0.0" y="0.0" width="50" height="50"/>
+                                                    <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                                                </view>
                                             </subviews>
                                             <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="calibratedWhite"/>
                                         </view>
                                         <constraints>
+                                            <constraint firstAttribute="bottom" secondItem="0pw-eW-k1w" secondAttribute="bottom" id="28a-Zk-ZRn"/>
+                                            <constraint firstAttribute="trailing" secondItem="0pw-eW-k1w" secondAttribute="trailing" id="426-2Y-or0"/>
                                             <constraint firstItem="SWm-V1-WYh" firstAttribute="leading" secondItem="rHy-mg-bxw" secondAttribute="leading" constant="1" id="GG1-Dw-kPU"/>
                                             <constraint firstItem="D7X-Vb-wEy" firstAttribute="centerY" secondItem="rHy-mg-bxw" secondAttribute="centerY" id="Uq6-Ac-oWf"/>
                                             <constraint firstAttribute="bottom" secondItem="SWm-V1-WYh" secondAttribute="bottom" constant="1" id="cty-u0-XDK"/>
+                                            <constraint firstItem="0pw-eW-k1w" firstAttribute="top" secondItem="rHy-mg-bxw" secondAttribute="top" id="jbd-F7-z3s"/>
                                             <constraint firstAttribute="trailing" secondItem="SWm-V1-WYh" secondAttribute="trailing" constant="1" id="jr9-Yx-N5P"/>
+                                            <constraint firstItem="0pw-eW-k1w" firstAttribute="leading" secondItem="rHy-mg-bxw" secondAttribute="leading" id="pUU-wu-HwP"/>
                                             <constraint firstItem="D7X-Vb-wEy" firstAttribute="centerX" secondItem="rHy-mg-bxw" secondAttribute="centerX" id="sxs-AW-Q4c"/>
                                             <constraint firstItem="SWm-V1-WYh" firstAttribute="top" secondItem="rHy-mg-bxw" secondAttribute="top" constant="1" id="zng-qw-fQM"/>
                                         </constraints>
                                         <connections>
                                             <outlet property="activityIndicator" destination="D7X-Vb-wEy" id="cHs-4h-POo"/>
+                                            <outlet property="overlayCell" destination="0pw-eW-k1w" id="gja-m3-IyG"/>
                                             <outlet property="photoImage" destination="SWm-V1-WYh" id="epK-re-0oB"/>
                                         </connections>
                                     </collectionViewCell>
@@ -104,17 +113,39 @@
                                     <constraint firstAttribute="height" relation="lessThanOrEqual" constant="120" id="SNg-TY-1H4"/>
                                 </constraints>
                             </mapView>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="ABE-p9-7oB">
+                                <rect key="frame" x="0.0" y="570" width="600" height="30"/>
+                                <state key="normal" title="New Collection"/>
+                                <connections>
+                                    <action selector="newCollectionButtonTouchUp:" destination="BCk-cC-qu8" eventType="touchUpInside" id="Ku4-Pc-lCk"/>
+                                </connections>
+                            </button>
+                            <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="bf8-2W-8y6">
+                                <rect key="frame" x="0.0" y="570" width="600" height="30"/>
+                                <state key="normal" title="Delete Selected Photos"/>
+                                <connections>
+                                    <action selector="deleteSelectedPhotosTouchUP:" destination="BCk-cC-qu8" eventType="touchUpInside" id="OIo-GV-zcu"/>
+                                    <action selector="newCollectionButtonTouchUp:" destination="BCk-cC-qu8" eventType="touchUpInside" id="Kel-Wi-Veu"/>
+                                </connections>
+                            </button>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                         <constraints>
+                            <constraint firstAttribute="trailing" secondItem="bf8-2W-8y6" secondAttribute="trailing" id="3fW-LP-ybF"/>
                             <constraint firstItem="a36-5A-iRb" firstAttribute="top" secondItem="10x-0p-zV6" secondAttribute="bottom" id="Blk-Qy-CgR"/>
+                            <constraint firstAttribute="trailing" secondItem="ABE-p9-7oB" secondAttribute="trailing" id="Bv1-Ad-qUx"/>
                             <constraint firstAttribute="trailing" secondItem="f0Z-ei-a9W" secondAttribute="trailing" id="JmG-Ww-dUU"/>
+                            <constraint firstItem="2pS-lz-OXd" firstAttribute="top" secondItem="bf8-2W-8y6" secondAttribute="bottom" id="QKo-kc-AMW"/>
                             <constraint firstItem="f0Z-ei-a9W" firstAttribute="leading" secondItem="lBb-16-fla" secondAttribute="leading" id="T45-z1-3KA"/>
                             <constraint firstItem="a36-5A-iRb" firstAttribute="leading" secondItem="lBb-16-fla" secondAttribute="leading" id="cv5-Mj-2dC"/>
+                            <constraint firstItem="bf8-2W-8y6" firstAttribute="leading" secondItem="lBb-16-fla" secondAttribute="leading" id="i5f-Ty-XcD"/>
+                            <constraint firstItem="2pS-lz-OXd" firstAttribute="top" secondItem="ABE-p9-7oB" secondAttribute="bottom" id="iqX-ho-lna"/>
                             <constraint firstAttribute="trailing" secondItem="a36-5A-iRb" secondAttribute="trailing" id="j6v-nD-SGM"/>
                             <constraint firstItem="f0Z-ei-a9W" firstAttribute="top" secondItem="a36-5A-iRb" secondAttribute="bottom" id="lr6-4p-8Ew"/>
+                            <constraint firstItem="bf8-2W-8y6" firstAttribute="top" secondItem="f0Z-ei-a9W" secondAttribute="bottom" id="pxY-pF-4jL"/>
+                            <constraint firstItem="ABE-p9-7oB" firstAttribute="top" secondItem="f0Z-ei-a9W" secondAttribute="bottom" id="rJj-PJ-2uL"/>
                             <constraint firstItem="f0Z-ei-a9W" firstAttribute="top" secondItem="a36-5A-iRb" secondAttribute="bottom" id="sXf-t9-foz"/>
-                            <constraint firstItem="2pS-lz-OXd" firstAttribute="top" secondItem="f0Z-ei-a9W" secondAttribute="bottom" id="uTQ-0V-P5K"/>
+                            <constraint firstItem="ABE-p9-7oB" firstAttribute="leading" secondItem="lBb-16-fla" secondAttribute="leading" id="snE-OW-h47"/>
                         </constraints>
                         <variation key="default">
                             <mask key="constraints">
@@ -124,7 +155,9 @@
                     </view>
                     <connections>
                         <outlet property="collectionView" destination="f0Z-ei-a9W" id="lxw-yJ-EgQ"/>
+                        <outlet property="deleteSelectedButton" destination="bf8-2W-8y6" id="vTY-nm-gwr"/>
                         <outlet property="mapView" destination="a36-5A-iRb" id="rpF-7E-ANT"/>
+                        <outlet property="newCollectionButton" destination="ABE-p9-7oB" id="C1V-Nd-axf"/>
                     </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="Lfl-e3-NJO" userLabel="First Responder" sceneMemberID="firstResponder"/>

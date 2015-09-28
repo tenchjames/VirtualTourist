@@ -12,4 +12,6 @@ class PhotoCollectionViewCell: UICollectionViewCell {
     
     @IBOutlet weak var photoImage: UIImageView!
     @IBOutlet weak var activityIndicator: UIActivityIndicatorView!
+
+    @IBOutlet weak var overlayCell: UIView!
 }
